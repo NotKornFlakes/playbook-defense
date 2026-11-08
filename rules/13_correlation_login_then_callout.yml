@@ -25,6 +25,9 @@ correlation:
   group-by:
     - device_ip
   timespan: 10m
+  # Keep rules 01 and 09 as alerts of their own too. Without this, converting the folder
+  # folds them into this rule and they stop firing separately.
+  generate: true
 falsepositives:
   - Unlikely. Both halves would need to be false positives on the same device.
 level: critical

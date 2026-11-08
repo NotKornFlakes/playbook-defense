@@ -12,8 +12,8 @@ references:
 author: Timothy Fletcher
 date: 2026-11-08
 tags:
-  - attack.defense-evasion
   - attack.discovery
+  - attack.stealth
   - attack.t1497.001
   - attack.t1083
 logsource:

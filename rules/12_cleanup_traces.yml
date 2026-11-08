@@ -9,7 +9,7 @@ references:
 author: Timothy Fletcher
 date: 2026-11-08
 tags:
-  - attack.defense-evasion
+  - attack.stealth
   - attack.t1070.004
   - attack.t1070.003
 logsource:

@@ -1,5 +1,7 @@
 # Playbook Defense
 
+[![CI](https://github.com/NotKornFlakes/playbook-defense/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/NotKornFlakes/playbook-defense/actions/workflows/ci.yml)
+
 Turns the post-login playbook from the [Rust telnet honeypot](https://timfletcher.tech/honeypot/)
 into protection for a company network on Google Cloud:
 
@@ -107,9 +109,10 @@ even through IAP.
 ### 4. Put the fake shell on the decoy
 
 The decoy runs the same program as the public honeypot, set up the same way. From your
-`rust-telnet-sensor` repo, follow `deploy/README.md` from the step that installs the program,
-using `ssh nas-backup-01` in place of `ssh honeypot`. `host/nftables.conf`,
-`host/honeypot.service`, `host/credentials.txt` and `host/honeypot-shell.conf` work unchanged.
+[`rust-telnet-sensor`](https://github.com/NotKornFlakes/rust-telnet-sensor) repo, follow
+`deploy/README.md` from the step that installs the program, using `ssh nas-backup-01` in
+place of `ssh honeypot`. `host/nftables.conf`, `host/honeypot.service`,
+`host/credentials.txt` and `host/honeypot-shell.conf` work unchanged.
 
 The decoy has no public IP. To install packages, its subnet needs Cloud NAT and
 `allow_setup_egress = true`, just for that step. Set it back to `false` and apply again
@@ -144,16 +147,23 @@ Cloud Logging first, then the SIEM's field names against `pipelines/gcp_firewall
 
 ## What was tested
 
-- All 16 rules parse and convert with `sigma convert -t splunk`, with and without the GCP
-  field mapping, from both `rules/` and the rendered `build/rules/`.
-- The approved-scanner exclusion renders on rules 14 and 15 only.
-- `terraform/*.tf` parses, and every address in `allowlist.yaml` is a valid CIDR.
+[CI](.github/workflows/ci.yml) runs on every push and pull request to `master`:
 
-Not yet run: `terraform validate` and `terraform plan` (the provider couldn't be downloaded
-where this was built), and the tag check in `sigma check` (it needs the MITRE data online).
-Run both before the first apply:
+- **Sigma:** `sigma check -i rules/`, which fails on any issue, including an invalid MITRE
+  ATT&CK tag, then `apply_allowlist.py` and
+  `sigma convert -t splunk -p pipelines/gcp_firewall.yml build/rules/`.
+- **Terraform:** `terraform fmt -check`, `terraform init -backend=false` and `terraform validate`.
+
+Also checked by hand:
+
+- The approved-scanner exclusion renders on rules 14 and 15 only.
+- Every address in `allowlist.yaml` is a valid CIDR.
+
+Not run: `terraform plan`, which needs your project and credentials. CI also only checks the
+placeholder addresses, so once you've filled in `allowlist.yaml`, run these before the first
+apply:
 
 ```sh
-sigma check build/rules/
-cd terraform && terraform init && terraform validate && terraform plan
+python3 scripts/apply_allowlist.py && sigma check build/rules/
+cd terraform && terraform init && terraform plan
 ```

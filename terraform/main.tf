@@ -50,7 +50,7 @@ locals {
   # rpcbind, NetBIOS, SMB, AFP, rsync, NFS and the 5000/5001 admin pages many NAS use.
   decoy_tripwire_ports = ["21", "23", "80", "111", "139", "443", "445", "548", "873", "2049", "5000", "5001"]
 
-  iap_range = "35.235.240.0/20"
+  iap_range  = "35.235.240.0/20"
   admin_user = "decoyadmin"
 }
 

@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  sigma:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Install sigma-cli and the Splunk backend
+        run: pip install sigma-cli pysigma-backend-splunk
+
+      - name: Check the rules
+        run: sigma check -i rules/
+
+      - name: Render the rules from allowlist.yaml
+        run: python3 scripts/apply_allowlist.py
+
+      - name: Convert the rendered rules to Splunk
+        run: sigma convert -t splunk -p pipelines/gcp_firewall.yml build/rules/
+
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: hashicorp/setup-terraform@v4
+
+      - name: Check formatting
+        run: terraform fmt -check
+
+      - name: Init without a backend
+        run: terraform init -backend=false
+
+      - name: Validate
+        run: terraform validate
