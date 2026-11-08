@@ -1,0 +1,35 @@
+title: Inbound Telnet From a Non-Allowlisted Address
+id: d2ba9314-5db0-4ba0-9109-d690c0be5944
+name: inbound_telnet_not_allowlisted
+status: experimental
+description: |
+  Playbook step "Log in with factory defaults". Detects any connection to telnet
+  (23 or 2323) from an address outside the approved allowlist. On the public honeypot,
+  87% of telnet connections sent a login, and an open telnet port was all the bots
+  needed to start. Fires whether the firewall allowed or denied the connection, so
+  it also shows how often the door is being tried.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.initial-access
+  - attack.credential-access
+  - attack.t1110.001
+  - attack.t1078.001
+logsource:
+  category: firewall
+detection:
+  selection:
+    dst_port:
+      - 23
+      - 2323
+  filter_allowlist:
+    src_ip|cidr:
+      - 198.51.100.0/24
+      - 203.0.113.10/32
+      - 35.235.240.0/20
+  condition: selection and not filter_allowlist
+falsepositives:
+  - A new approved site or VPN range that hasn't been added to allowlist.yaml yet
+level: high

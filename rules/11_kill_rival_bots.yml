@@ -1,0 +1,40 @@
+title: Mass Process Kill Targeting Rival Malware
+id: c5e34464-3d7b-4d97-874b-cc6c50e62ad1
+status: experimental
+description: |
+  Playbook step "Remove rival bots". Once installed, IoT malware kills other bots on the
+  device so it has the device to itself. It does this with kill -9 against processes
+  named after other malware families or running from temporary folders.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.impact
+  - attack.t1489
+logsource:
+  product: linux
+  category: process_creation
+detection:
+  selection_kill:
+    CommandLine|contains:
+      - 'kill -9'
+      - 'pkill -9'
+      - 'killall -9'
+      - 'busybox kill'
+      - 'busybox killall'
+  selection_target:
+    CommandLine|contains:
+      - 'mirai'
+      - 'gafgyt'
+      - 'bashlite'
+      - 'mozi'
+      - 'tsunami'
+      - '.x86'
+      - '.arm'
+      - '.mips'
+      - '/tmp/'
+  condition: selection_kill and selection_target
+falsepositives:
+  - Cleanup scripts that stop processes running from /tmp
+level: medium

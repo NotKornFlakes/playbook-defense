@@ -1,0 +1,35 @@
+title: Inbound Admin Port From a Non-Allowlisted Address
+id: 6d01abc5-64c0-4f00-9eb7-f3c52e2556ff
+status: experimental
+description: |
+  Same idea as the telnet rule, for the other doors bots try: SSH, RDP, VNC and the
+  web admin ports common on routers, cameras and NAS boxes. Only the VPN, static
+  office IPs and the bastion/IAP range should ever reach these.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.initial-access
+  - attack.credential-access
+  - attack.t1110.001
+  - attack.t1078.001
+logsource:
+  category: firewall
+detection:
+  selection:
+    dst_port:
+      - 22
+      - 3389
+      - 5900
+      - 8080
+      - 8443
+  filter_allowlist:
+    src_ip|cidr:
+      - 198.51.100.0/24
+      - 203.0.113.10/32
+      - 35.235.240.0/20
+  condition: selection and not filter_allowlist
+falsepositives:
+  - A new approved site or VPN range that hasn't been added to allowlist.yaml yet
+level: medium

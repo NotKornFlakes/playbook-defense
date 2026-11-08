@@ -1,0 +1,32 @@
+title: IoT Bot Checking for a Real Shell
+id: 014eecf3-04e9-4978-94a1-76f82a1310a2
+status: experimental
+description: |
+  Playbook steps "Check for a real BusyBox", "Check that echo works", "The SHELL_TEST
+  check" and the hex echo used to test a writable folder. Before downloading anything,
+  bots run a command whose output only a real shell produces: BusyBox with a made-up
+  applet name in capitals, echo -e with hex escapes, or echo SHELL_TEST. People almost
+  never type these, so a match is a strong sign of a bot that is already inside.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.defense-evasion
+  - attack.discovery
+  - attack.t1497.001
+  - attack.t1083
+logsource:
+  product: linux
+  category: process_creation
+detection:
+  selection_busybox_marker:
+    CommandLine|re: '/bin/busybox [A-Z0-9]{4,}'
+  selection_hex_echo:
+    CommandLine|re: 'echo\s+-e\s+[''"]?(\\x[0-9a-fA-F]{2}){2,}'
+  selection_shell_test:
+    CommandLine|contains: 'SHELL_TEST'
+  condition: 1 of selection_*
+falsepositives:
+  - Firmware build or test scripts that use hex echo
+level: high

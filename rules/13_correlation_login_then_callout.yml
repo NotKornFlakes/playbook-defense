@@ -1,0 +1,30 @@
+title: Telnet Login Attempt Followed by an IoT Device Calling Out
+id: 0bc52fba-50a2-4734-8d8d-a82acf7e71f4
+status: experimental
+description: |
+  The full playbook in one alert. A device receives a telnet connection from an address
+  that isn't on the allowlist, then within 10 minutes the same device connects to a
+  destination that isn't approved. On the honeypot, that sequence is exactly what a
+  successful infection looks like. Grouped by the device's internal IP, so the inbound
+  connection must be logged after NAT (the device's own address, not the public one).
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+correlation:
+  # "temporal" = both happened within the timespan, in either order. Most SIEM backends
+  # support it; "temporal_ordered" (login strictly first) is stricter but less portable.
+  type: temporal
+  rules:
+    - inbound_telnet_not_allowlisted
+    - iot_outbound_not_allowlisted
+  aliases:
+    device_ip:
+      inbound_telnet_not_allowlisted: dst_ip
+      iot_outbound_not_allowlisted: src_ip
+  group-by:
+    - device_ip
+  timespan: 10m
+falsepositives:
+  - Unlikely. Both halves would need to be false positives on the same device.
+level: critical

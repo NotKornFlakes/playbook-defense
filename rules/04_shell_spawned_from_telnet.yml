@@ -1,0 +1,37 @@
+title: Shell Spawned From a Telnet Session
+id: 5dd40b7b-abf9-48cd-bffe-88d606a3fcf1
+status: experimental
+description: |
+  Playbook steps "Break out of a router's limited menu" and "Try a router CLI". Bots send
+  enable, system, shell, linuxshell or sh to escape a device's restricted menu into a real
+  shell. On a Linux-based device or server with process logging (auditd, EDR), that
+  escape shows up as a shell started under telnetd or login. On network gear, look for
+  the same words in AAA command accounting instead.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.execution
+  - attack.t1059.004
+  - attack.t1059.008
+logsource:
+  product: linux
+  category: process_creation
+detection:
+  selection_parent:
+    ParentImage|endswith:
+      - '/telnetd'
+      - '/in.telnetd'
+      - '/utelnetd'
+      - '/login'
+  selection_shell:
+    Image|endswith:
+      - '/sh'
+      - '/ash'
+      - '/bash'
+      - '/busybox'
+  condition: selection_parent and selection_shell
+falsepositives:
+  - Legacy devices that are genuinely managed over telnet (they should be replaced or moved behind the VPN)
+level: medium

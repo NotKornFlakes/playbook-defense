@@ -1,0 +1,40 @@
+title: Shell Command Injected Into a Ping or Diagnostic Tool
+id: 6449b581-de17-4c2e-bdc0-cedfd00863b3
+status: experimental
+description: |
+  Playbook step "Inject a shell into a ping tool". Many routers and cameras have a web
+  diagnostics page that runs ping or traceroute on whatever address is typed in. Bots add
+  shell syntax (;, |, $(), backticks, &&) to that field to run their own commands. Only
+  catches requests that carry the field in the URL; POST bodies need a WAF or full
+  request logging.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.execution
+  - attack.t1059.004
+logsource:
+  category: webserver
+detection:
+  selection_tool:
+    cs-uri-query|contains:
+      - 'ping'
+      - 'traceroute'
+      - 'diag'
+  selection_injection:
+    cs-uri-query|contains:
+      - ';'
+      - '|'
+      - '$('
+      - '`'
+      - '&&'
+      - '%3B'
+      - '%7C'
+      - '%24%28'
+      - '%60'
+      - '%26%26'
+  condition: selection_tool and selection_injection
+falsepositives:
+  - Unlikely. A real address never contains shell syntax.
+level: high

@@ -1,0 +1,24 @@
+title: Outbound Connection From the NAS Decoy
+id: be91747a-f389-4189-b189-17e83f98dad2
+status: experimental
+description: |
+  The NAS decoy is never allowed to start a connection: its egress is denied in the VPC
+  firewall and again by nftables on the host. A logged outbound attempt means something
+  on the decoy is trying to get out, which should never happen. Treat it as a reason to
+  shut the decoy down and look at it.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.command-and-control
+  - attack.t1105
+logsource:
+  category: firewall
+detection:
+  selection_decoy:
+    src_ip: 10.20.0.25
+  condition: selection_decoy
+falsepositives:
+  - Package installs during setup, while allow_setup_egress = true
+level: critical

@@ -1,0 +1,26 @@
+title: Connection to the NAS Decoy
+id: 1b08de07-5d41-4596-96fd-2f9b7eb143cd
+status: experimental
+description: |
+  The internal decoy is a fake NAS that no real person, script or system uses. Any
+  connection to it, on any port, means someone inside the network is exploring: a
+  compromised device, a bot that got past the edge, or a person who shouldn't be
+  there. This is the trap's main alert, and it has almost no false positives.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.discovery
+  - attack.lateral-movement
+  - attack.t1046
+  - attack.t1135
+logsource:
+  category: firewall
+detection:
+  selection_decoy:
+    dst_ip: 10.20.0.25
+  condition: selection_decoy
+falsepositives:
+  - An approved vulnerability scanner or inventory tool (add it to decoy.ignore_sources in allowlist.yaml)
+level: high

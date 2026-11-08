@@ -1,0 +1,36 @@
+title: IoT Device Connecting Out on a Known Dropper Port
+id: febe6806-6201-496e-9eb4-f74641302122
+status: experimental
+description: |
+  The sharper version of the IoT outbound rule. Droppers on the honeypot fetched payloads
+  from raw IP addresses over ports 80, 443, 8081 and 9087, or over TFTP (69). An IoT device
+  reaching an unapproved destination on one of these ports most likely means a download is
+  happening right now.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.command-and-control
+  - attack.t1105
+logsource:
+  category: firewall
+detection:
+  selection_iot_segment:
+    src_ip|cidr: 10.50.0.0/24
+  selection_ports:
+    dst_port:
+      - 69
+      - 80
+      - 443
+      - 8081
+      - 9087
+  filter_iot_allowed:
+    dst_ip|cidr:
+      - 192.0.2.50/32
+      - 192.0.2.123/32
+      - 10.0.10.5/32
+  condition: selection_iot_segment and selection_ports and not filter_iot_allowed
+falsepositives:
+  - A firmware update that moved the vendor's servers to a new address
+level: critical

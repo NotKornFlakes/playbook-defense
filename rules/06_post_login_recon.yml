@@ -1,0 +1,34 @@
+title: Device Reconnaissance Commands Typical of IoT Bots
+id: 95deb6ca-e454-4a00-a8a4-41e6f999da94
+status: experimental
+description: |
+  Playbook steps "Look around" and "Find a writable folder". Right after logging in, bots
+  read the CPU type (to pick the right malware build), list mounts to find a folder they
+  can write to, and check who they are. Each command alone is harmless, so this is
+  low severity. Its value is as context next to the higher-severity rules.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.discovery
+  - attack.t1082
+  - attack.t1087.001
+  - attack.t1033
+  - attack.t1083
+logsource:
+  product: linux
+  category: process_creation
+detection:
+  selection:
+    CommandLine|contains:
+      - 'cat /proc/cpuinfo'
+      - 'cat /proc/mounts'
+      - 'cat /proc/version'
+      - 'cat /etc/passwd'
+      - '/bin/busybox ps'
+      - 'uname -a'
+  condition: selection
+falsepositives:
+  - Administrators and inventory scripts checking a device
+level: low

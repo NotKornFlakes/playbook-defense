@@ -1,0 +1,22 @@
+# pySigma processing pipeline: maps the generic firewall field names used in the rules
+# to the field names in Google Cloud VPC firewall rule logs.
+#
+# Use it when converting, e.g.:
+#   sigma convert -t splunk -p pipelines/gcp_firewall.yml build/rules/
+#
+# GCP only writes a firewall log entry for connections that match a rule with logging
+# turned on. Every rule in terraform/main.tf has logging on for exactly that reason.
+name: GCP VPC firewall rule logs
+priority: 10
+transformations:
+  - id: gcp_firewall_field_names
+    type: field_name_mapping
+    mapping:
+      src_ip: jsonPayload.connection.src_ip
+      dst_ip: jsonPayload.connection.dest_ip
+      dst_port: jsonPayload.connection.dest_port
+      src_port: jsonPayload.connection.src_port
+      action: jsonPayload.disposition
+    rule_conditions:
+      - type: logsource
+        category: firewall

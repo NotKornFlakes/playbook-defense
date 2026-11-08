@@ -1,0 +1,31 @@
+title: IoT Device Connecting to an Unapproved Destination
+id: 88ff8ff0-b64c-486a-a338-21508c151a5c
+name: iot_outbound_not_allowlisted
+status: experimental
+description: |
+  Defender step 4 from the honeypot report. IoT devices talk to a small, fixed set of
+  servers, so a connection from the IoT segment to anything else is worth a look. This
+  is the alert that would have caught every download attempt on the honeypot. Fires
+  whether the firewall blocked the connection or not.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.command-and-control
+  - attack.t1105
+logsource:
+  category: firewall
+detection:
+  selection_iot_segment:
+    src_ip|cidr: 10.50.0.0/24
+  filter_iot_allowed:
+    dst_ip|cidr:
+      - 192.0.2.50/32
+      - 192.0.2.123/32
+      - 10.0.10.5/32
+  condition: selection_iot_segment and not filter_iot_allowed
+falsepositives:
+  - A firmware update that moved the vendor's servers to a new address
+  - A new device added to the IoT segment before its destinations were added to allowlist.yaml
+level: high

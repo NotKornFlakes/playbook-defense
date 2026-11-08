@@ -1,0 +1,8 @@
+# Rendered rules contain your real addresses
+build/
+
+# Terraform state and local settings
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/terraform.tfvars

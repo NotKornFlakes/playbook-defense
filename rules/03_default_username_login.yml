@@ -1,0 +1,41 @@
+title: Login With a Factory-Default Username
+id: 1e3d5d70-fb72-4861-a731-be5f34d5bd67
+status: experimental
+description: |
+  Playbook step "Log in with factory defaults". Detects a successful console or telnet
+  login using one of the usernames bots tried most widely on the honeypot (root, admin,
+  default, guest, support, telnetadmin, user, telecomadmin, administrator, hikvision).
+  Matches the login lines written by util-linux and BusyBox login. On a device that
+  should only be managed over the VPN, any such login deserves a look.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.initial-access
+  - attack.credential-access
+  - attack.t1110.001
+  - attack.t1078.001
+logsource:
+  product: linux
+  service: auth
+detection:
+  keywords_login:
+    - 'ROOT LOGIN'
+    - 'LOGIN ON'
+    - "login on '"
+  keywords_user:
+    - ' root'
+    - ' admin'
+    - ' default'
+    - ' guest'
+    - ' support'
+    - ' telnetadmin'
+    - ' user '
+    - ' telecomadmin'
+    - ' administrator'
+    - ' hikvision'
+  condition: keywords_login and keywords_user
+falsepositives:
+  - An administrator logging in at a physical console with a shared account
+level: medium

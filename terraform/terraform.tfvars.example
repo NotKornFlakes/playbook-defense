@@ -1,0 +1,17 @@
+# Copy to terraform.tfvars and fill in. Addresses live in ../allowlist.yaml, not here.
+
+project_id       = "your-company-project"
+network          = "company-vpc"
+decoy_subnetwork = "servers"
+
+# Optional overrides
+# managed_tag         = "managed"
+# iot_tag             = "iot"
+# decoy_tag           = "storage"
+# ssh_public_key_path = "~/.ssh/decoy_admin.pub"
+
+# Only true while a legacy device that can't do SSH is being replaced.
+# allow_legacy_telnet = false
+
+# Only true while installing packages on the decoy, then back to false.
+# allow_setup_egress = false

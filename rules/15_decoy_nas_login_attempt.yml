@@ -1,0 +1,32 @@
+title: Login Attempt on the NAS Decoy
+id: 619909aa-35c5-417c-9131-5b84af0afe01
+status: experimental
+description: |
+  Someone connected to the NAS decoy's telnet port (23) or its NAS admin pages (5000,
+  5001). Scanning is one thing; going for a login on a NAS is a deliberate step toward
+  the company's files. The decoy runs the fake shell from the honeypot, so the
+  session's commands are recorded in its logs for the investigation.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.credential-access
+  - attack.lateral-movement
+  - attack.t1110.001
+  - attack.t1078.001
+  - attack.t1021
+logsource:
+  category: firewall
+detection:
+  selection_decoy:
+    dst_ip: 10.20.0.25
+  selection_login_ports:
+    dst_port:
+      - 23
+      - 5000
+      - 5001
+  condition: selection_decoy and selection_login_ports
+falsepositives:
+  - An approved vulnerability scanner (add it to decoy.ignore_sources in allowlist.yaml)
+level: critical

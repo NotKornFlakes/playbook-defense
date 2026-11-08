@@ -1,0 +1,32 @@
+title: Attacker Cleanup of Dropped Files or Shell History
+id: 1b902191-65e7-4783-b552-34fe179a3777
+status: experimental
+description: |
+  Playbook step "Clean up". After running the payload, bots delete the dropped file and
+  sometimes the shell history or logs, so the device looks untouched.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-08
+tags:
+  - attack.defense-evasion
+  - attack.t1070.004
+  - attack.t1070.003
+logsource:
+  product: linux
+  category: process_creation
+detection:
+  selection:
+    CommandLine|contains:
+      - 'rm -rf /tmp/'
+      - 'rm -f /tmp/'
+      - 'rm -rf /var/tmp/'
+      - 'rm -rf /dev/shm/'
+      - 'rm -rf /var/log'
+      - 'history -c'
+      - 'unset HISTFILE'
+      - 'HISTFILE=/dev/null'
+  condition: selection
+falsepositives:
+  - Housekeeping scripts that clear temporary folders
+level: medium

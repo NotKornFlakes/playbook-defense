@@ -1,0 +1,62 @@
+# ---------------------------------------------------------------------------
+# Single source of truth for "who is allowed in", "where IoT may go" and
+# "where the NAS decoy lives".
+#
+# Terraform reads this file directly (terraform/main.tf -> yamldecode).
+# scripts/apply_allowlist.py copies the same values into the Sigma rules,
+# so the firewall and the alerts never disagree.
+#
+# Every address below is a PLACEHOLDER (RFC 5737 documentation ranges and
+# RFC 1918 private ranges). Replace them with your real values.
+# ---------------------------------------------------------------------------
+
+# Recommended: make the VPN the main way in. Everything else is a fallback.
+vpn_ranges:
+  - 198.51.100.0/24        # your VPN's public egress range
+
+# Only list office IPs that are STATIC. A dynamic ISP address will drift and
+# either lock you out or, worse, let a stranger in when the ISP reassigns it.
+office_ips:
+  - 203.0.113.10/32        # main office static IP
+
+# On GCP, prefer Identity-Aware Proxy over a public bastion: keep the
+# 35.235.240.0/20 line (Google's IAP range) and leave out a bastion IP.
+bastion_ips:
+  - 35.235.240.0/20        # GCP IAP TCP forwarding
+  # - 192.0.2.10/32        # self-managed jump host (only if you don't use IAP)
+
+# Management ports that only the addresses above may reach.
+# Telnet (23/2323) is NOT here on purpose. It is denied for everyone unless
+# allow_legacy_telnet = true in terraform.tfvars.
+admin_ports:
+  - "22"     # SSH
+  - "3389"   # RDP
+  - "5900"   # VNC
+  - "8080"   # common device web admin
+  - "8443"   # common device web admin (TLS)
+
+iot:
+  # The segment your cameras, DVRs, routers, printers and other devices live on.
+  subnet: 10.50.0.0/24
+  # The few servers those devices genuinely need (vendor cloud, NTP, update
+  # server, your syslog collector). Anything else is blocked and alerted on.
+  allowed_destinations:
+    - 192.0.2.50/32        # vendor update / cloud service
+    - 192.0.2.123/32       # NTP server
+    - 10.0.10.5/32         # internal syslog collector
+  allowed_ports:
+    tcp: ["443", "514"]
+    udp: ["123", "514"]
+
+decoy:
+  # The NAS decoy. Pick a name that matches how your real servers are named.
+  name: nas-backup-01
+  # A fixed internal address on a normal server segment. Nothing legitimate
+  # ever connects to it, so any connection is worth an alert.
+  ip: 10.20.0.25
+  # Who the decoy listens to: your internal ranges. It has no public IP.
+  internal_ranges:
+    - 10.0.0.0/8
+  # Approved scanners (vulnerability scanner, asset inventory) that touch
+  # everything on a schedule. Leave empty if you have none.
+  ignore_sources: []
