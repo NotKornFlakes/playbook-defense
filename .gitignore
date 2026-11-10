@@ -6,3 +6,6 @@ terraform/.terraform/
 terraform/*.tfstate
 terraform/*.tfstate.*
 terraform/terraform.tfvars
+
+# Python bytecode from running the tests
+__pycache__/

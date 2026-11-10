@@ -20,6 +20,7 @@ rules/                         Sigma rules (placeholder addresses, validate as-i
 scripts/apply_allowlist.py     writes build/rules/ with your real addresses
 pipelines/gcp_firewall.yml     maps rule fields to GCP firewall log fields
 terraform/                     firewall rules + the NAS decoy
+tests/                         what the rules match, against command lines from the honeypot
 ```
 
 ## The playbook, mapped to alerts
@@ -152,6 +153,8 @@ Cloud Logging first, then the SIEM's field names against `pipelines/gcp_firewall
 - **Sigma:** `sigma check -i rules/`, which fails on any issue, including an invalid MITRE
   ATT&CK tag, then `apply_allowlist.py` and
   `sigma convert -t splunk -p pipelines/gcp_firewall.yml build/rules/`.
+- **What the rules match:** `python3 -m unittest discover -s tests`, which checks rule 07
+  against real command lines from the honeypot, masked, including the random BusyBox words.
 - **Terraform:** `terraform fmt -check`, `terraform init -backend=false` and `terraform validate`.
 
 Also checked by hand:
