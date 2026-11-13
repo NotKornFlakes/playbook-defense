@@ -5,7 +5,7 @@
 Turns the post-login playbook from the [Rust telnet honeypot](https://timfletcher.tech/honeypot/)
 into protection for a company network on Google Cloud:
 
-1. **Alerts:** 16 Sigma rules, one or more for every step in the playbook table.
+1. **Alerts:** 17 Sigma rules, one or more for every step in the playbook table.
 2. **Allowlist:** GCP firewall rules so admin ports and telnet only answer approved addresses,
    and IoT devices can only reach the few servers they need.
 3. **A trap:** an internal NAS decoy (`nas-backup-01`) that nothing legitimate ever touches,
@@ -39,6 +39,7 @@ tests/                         what the rules match, against command lines from 
 | | | 10 ...on a known dropper port | Firewall | critical |
 | Remove rival bots | T1489 | 11 Mass kill targeting rival malware | Process creation | medium |
 | Clean up | T1070.004 | 12 Cleanup of dropped files or history | Process creation | medium |
+| Write a payload with hex echoes, instead of downloading | T1140, T1059.004 | 17 Payload written with hex-escaped echo or printf | Process creation | medium |
 | Whole playbook | | 13 Telnet attempt + IoT call-out within 10 min | Firewall (correlation) | critical |
 | Trap | T1046, T1135 | 14 Anything touched the NAS decoy | Firewall | high |
 | | T1110.001, T1021 | 15 Login attempt on the NAS decoy | Firewall | critical |
@@ -47,6 +48,20 @@ tests/                         what the rules match, against command lines from 
 **Start with the firewall rules (01, 02, 09, 10, 13 to 16).** They only need GCP firewall
 logs, which `terraform/` turns on for you. The process and auth rules need auditd, an EDR or
 syslog from the devices themselves, which many IoT devices can't provide.
+
+**What a process log can't see.** A process-creation log records programs, not what a shell
+does by itself. Shell builtins such as `echo`, `printf`, `cd`, `kill` and `history` start no
+process, and a `> file` redirection belongs to the shell, so neither shows up in any command
+line. That hides the writable-folder probe (rule 06), `echo SHELL_TEST` and most hex echoes
+(rule 07), a `kill -9` inside a script (rule 11), `history -c` and `unset HISTFILE` (rule 12),
+and a payload written with the shell's own `echo` (rule 17). Those rules only see such a step
+when it runs as a program, such as `/bin/busybox echo` or a script under `sh -c`, and each
+rule's description says which of its parts this affects.
+
+Rules 08 and 12 also read the process's working directory. Bots `cd` into a temporary folder,
+then run `chmod` or `rm` on a file named alone, so the folder is only in `CurrentDirectory`.
+Those parts work only where the log source provides that field, as Sysmon for Linux does. With
+auditd, map it from the CWD record.
 
 ## Who should be on the allowlist
 
@@ -153,8 +168,10 @@ Cloud Logging first, then the SIEM's field names against `pipelines/gcp_firewall
 - **Sigma:** `sigma check -i rules/`, which fails on any issue, including an invalid MITRE
   ATT&CK tag, then `apply_allowlist.py` and
   `sigma convert -t splunk -p pipelines/gcp_firewall.yml build/rules/`.
-- **What the rules match:** `python3 -m unittest discover -s tests`, which checks rule 07
-  against real command lines from the honeypot, masked, including the random BusyBox words.
+- **What the rules match:** `python3 -m unittest discover -s tests`, which checks rules 03, 06,
+  07, 08, 10, 11, 12 and 17 against what bots sent the honeypot from Nov 3 to Nov 10: command
+  lines, usernames and download ports, masked, including the random BusyBox words and the one
+  payload written with hex echoes.
 - **Terraform:** `terraform fmt -check`, `terraform init -backend=false` and `terraform validate`.
 
 Also checked by hand:

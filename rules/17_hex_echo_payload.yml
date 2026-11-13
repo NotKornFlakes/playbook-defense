@@ -1,0 +1,39 @@
+title: Payload Written With Hex-Escaped Echo or Printf
+id: 8f60d246-ea6c-4cb0-923a-11d391af94a4
+status: experimental
+description: |
+  A bot that doesn't download can build a file on the device instead, writing it in chunks
+  with echo -ne or printf and hex escapes (\x23\x21...), then running it. This rule is built
+  from one real session on the honeypot, from Nov 3 to Nov 10: three /bin/busybox echo -ne
+  lines of 54 to 220 escapes that wrote a shell script killing other processes. Rule 11
+  couldn't see that script, because no command line held a readable kill or malware name.
+  It needs 32 or more escapes in a row, or the first bytes of a script (#!/) or an ELF
+  binary, so the short hex echoes bots use as markers (21 escapes at most) don't match. It
+  can also match installers or firmware tools that write files in echo chunks. A
+  process-creation log only sees this when echo or printf runs as its own process, as
+  BusyBox's /bin/busybox echo did here. A shell's builtin echo or printf starts no process,
+  and the > that writes the file is the shell's, so it never appears in a command line.
+references:
+  - https://timfletcher.tech/honeypot/
+author: Timothy Fletcher
+date: 2026-11-12
+tags:
+  - attack.execution
+  - attack.stealth
+  - attack.t1059.004
+  - attack.t1140
+logsource:
+  product: linux
+  category: process_creation
+detection:
+  selection_writer:
+    CommandLine|re: '(^|[/\s])(echo\s+-[a-zA-Z]*e[a-zA-Z]*\s|printf\s)'
+  selection_long_hex:
+    CommandLine|re: '(\\x[0-9a-fA-F]{2}){32,}'
+  selection_magic:
+    CommandLine|re: '\\x7[fF]\\x45\\x4[cC]\\x46|\\x23\\x21\\x2[fF]'
+  condition: selection_writer and (selection_long_hex or selection_magic)
+falsepositives:
+  - Installers, firmware or provisioning tools that write files in echo or printf chunks
+  - Scripts that write a key or other binary data of 32 bytes or more as hex escapes
+level: medium

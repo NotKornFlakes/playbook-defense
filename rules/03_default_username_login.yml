@@ -3,14 +3,20 @@ id: 1e3d5d70-fb72-4861-a731-be5f34d5bd67
 status: experimental
 description: |
   Playbook step "Log in with factory defaults". Detects a successful console or telnet
-  login using one of the usernames bots tried most widely on the honeypot (root, admin,
-  default, guest, support, telnetadmin, user, telecomadmin, administrator, hikvision).
-  Matches the login lines written by util-linux and BusyBox login. On a device that
-  should only be managed over the VPN, any such login deserves a look.
+  login using one of the usernames bots tried most widely on the honeypot: the top 10 by
+  IPs from Nov 3 to Nov 10 (root, admin, default, guest, support, user, telnetadmin, super,
+  telecomadmin, Alphanetworks), and administrator and hikvision, which were in the top 10
+  of its first days. Matches the login lines written by util-linux and BusyBox login. Each
+  name has to match whole, followed by a space, so longer names such as superadmin don't
+  match, and neither does a remote host named like one. A console login logged with the
+  name last on the line isn't matched; a telnet login always has FROM and the remote host
+  after the name. On a device that should only be managed over the VPN, any such login
+  deserves a look.
 references:
   - https://timfletcher.tech/honeypot/
 author: Timothy Fletcher
 date: 2026-11-08
+modified: 2026-11-12
 tags:
   - attack.initial-access
   - attack.credential-access
@@ -25,16 +31,18 @@ detection:
     - 'LOGIN ON'
     - "login on '"
   keywords_user:
-    - ' root'
-    - ' admin'
-    - ' default'
-    - ' guest'
-    - ' support'
-    - ' telnetadmin'
+    - ' root '
+    - ' admin '
+    - ' default '
+    - ' guest '
+    - ' support '
     - ' user '
-    - ' telecomadmin'
-    - ' administrator'
-    - ' hikvision'
+    - ' telnetadmin '
+    - ' super '
+    - ' telecomadmin '
+    - ' Alphanetworks '
+    - ' administrator '
+    - ' hikvision '
   condition: keywords_login and keywords_user
 falsepositives:
   - An administrator logging in at a physical console with a shared account

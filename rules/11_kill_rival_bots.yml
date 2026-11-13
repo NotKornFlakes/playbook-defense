@@ -4,11 +4,16 @@ status: experimental
 description: |
   Playbook step "Remove rival bots". Once installed, IoT malware kills other bots on the
   device so it has the device to itself. It does this with kill -9 against processes
-  named after other malware families or running from temporary folders.
+  named after other malware families or running from temporary folders. A
+  process-creation log only sees the kill when it runs as a program: killall and pkill
+  always do, but kill is also a shell builtin, so a kill -9 inside a script can start no
+  process. One bot from Nov 3 to Nov 10 also wrote its rival-killing script in hex
+  escapes, so no kill or malware name appeared in any command line; rule 17 covers that.
 references:
   - https://timfletcher.tech/honeypot/
 author: Timothy Fletcher
 date: 2026-11-08
+modified: 2026-11-12
 tags:
   - attack.impact
   - attack.t1489

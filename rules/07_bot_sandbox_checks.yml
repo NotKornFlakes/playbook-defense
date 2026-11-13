@@ -6,13 +6,16 @@ description: |
   check" and the hex echo used to test a writable folder. Before downloading anything,
   bots run a command whose output only a real shell produces: BusyBox with a made-up
   applet name holding a capital letter (a botnet's name, or a random word of mixed case),
-  echo -e with hex escapes, or echo SHELL_TEST. Real applet names are lower case, and people
-  almost never type these, so a match is a strong sign of a bot that is already inside.
+  echo -e (or -en, -ne) with hex escapes, or echo SHELL_TEST. Real applet names are lower
+  case, and people almost never type these, so a match is a strong sign of a bot that is
+  already inside. A process-creation log only sees the echo checks when echo runs as its own
+  process, such as /bin/busybox echo in the writable-folder probe. A shell's builtin echo,
+  which bots used for echo SHELL_TEST and most hex echoes, starts no process.
 references:
   - https://timfletcher.tech/honeypot/
 author: Timothy Fletcher
 date: 2026-11-08
-modified: 2026-11-10
+modified: 2026-11-12
 tags:
   - attack.discovery
   - attack.stealth
@@ -25,7 +28,7 @@ detection:
   selection_busybox_marker:
     CommandLine|re: '/bin/busybox [a-z0-9]*[A-Z]'
   selection_hex_echo:
-    CommandLine|re: 'echo\s+-e\s+[''"]?(\\x[0-9a-fA-F]{2}){2,}'
+    CommandLine|re: 'echo\s+-[a-zA-Z]*e[a-zA-Z]*\s+[''"]?(\\x[0-9a-fA-F]{2}){2,}'
   selection_shell_test:
     CommandLine|contains: 'SHELL_TEST'
   condition: 1 of selection_*

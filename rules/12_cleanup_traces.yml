@@ -3,11 +3,18 @@ id: 1b902191-65e7-4783-b552-34fe179a3777
 status: experimental
 description: |
   Playbook step "Clean up". After running the payload, bots delete the dropped file and
-  sometimes the shell history or logs, so the device looks untouched.
+  sometimes the shell history or logs, so the device looks untouched. Bots cd into a
+  temporary folder first, so rm usually names the file alone (rm -f x.sh), as every
+  clean-up on the honeypot from Nov 3 to Nov 10 did. selection_relative_rm catches that from
+  the process's working directory, which only works where the log source provides a
+  CurrentDirectory field, as Sysmon for Linux does. With auditd, it has to be mapped from
+  the CWD record. history -c, unset HISTFILE and HISTFILE=/dev/null are shell builtins, so
+  a process-creation log only sees them when they run inside sh -c.
 references:
   - https://timfletcher.tech/honeypot/
 author: Timothy Fletcher
 date: 2026-11-08
+modified: 2026-11-12
 tags:
   - attack.stealth
   - attack.t1070.004
@@ -26,7 +33,12 @@ detection:
       - 'history -c'
       - 'unset HISTFILE'
       - 'HISTFILE=/dev/null'
-  condition: selection
+  selection_relative_rm:
+    CommandLine|re: '^(\S*/)?(busybox\s+)?rm\s+-[a-zA-Z]*f[a-zA-Z]*\s+[^/\s-]'
+  selection_temp_cwd:
+    CurrentDirectory|re: '^/(tmp|var/tmp|dev/shm|var/run)(/|$)'
+  condition: selection or (selection_relative_rm and selection_temp_cwd)
 falsepositives:
   - Housekeeping scripts that clear temporary folders
+  - Scripts that delete their own files after working in a temporary folder
 level: medium

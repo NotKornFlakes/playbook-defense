@@ -5,11 +5,15 @@ description: |
   Playbook steps "Look around" and "Find a writable folder". Right after logging in, bots
   read the CPU type (to pick the right malware build), list mounts to find a folder they
   can write to, and check who they are. Each command alone is harmless, so this is
-  low severity. Its value is as context next to the higher-severity rules.
+  low severity. Its value is as context next to the higher-severity rules. A
+  process-creation log can't see the writable-folder probe itself: bots test each folder
+  with a > redirection and cd, which the shell does without starting a process. Its hex
+  echo shows up in rule 07 when it runs as /bin/busybox echo.
 references:
   - https://timfletcher.tech/honeypot/
 author: Timothy Fletcher
 date: 2026-11-08
+modified: 2026-11-12
 tags:
   - attack.discovery
   - attack.t1082
@@ -28,7 +32,9 @@ detection:
       - 'cat /etc/passwd'
       - '/bin/busybox ps'
       - 'uname -a'
+      - 'uname -m'
   condition: selection
 falsepositives:
   - Administrators and inventory scripts checking a device
+  - Installers and build scripts checking the CPU type with uname -m
 level: low
