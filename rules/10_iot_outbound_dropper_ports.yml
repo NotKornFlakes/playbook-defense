@@ -3,13 +3,14 @@ id: febe6806-6201-496e-9eb4-f74641302122
 status: experimental
 description: |
   The sharper version of the IoT outbound rule. Droppers on the honeypot fetched payloads
-  from raw IP addresses over ports 80, 443, 8081 and 9087, or over TFTP (69). An IoT device
-  reaching an unapproved destination on one of these ports most likely means a download is
-  happening right now.
+  from raw IP addresses over ports 80, 443, 8081 and 9087, over TFTP (69), and from Nov 8
+  over FTP (21). An IoT device reaching an unapproved destination on one of these ports most
+  likely means a download is happening right now.
 references:
   - https://timfletcher.tech/honeypot/
 author: Timothy Fletcher
 date: 2026-11-08
+modified: 2026-11-12
 tags:
   - attack.command-and-control
   - attack.t1105
@@ -20,6 +21,7 @@ detection:
     src_ip|cidr: 10.50.0.0/24
   selection_ports:
     dst_port:
+      - 21
       - 69
       - 80
       - 443
